@@ -1,60 +1,113 @@
 import { execFile } from 'node:child_process';
 
-/**
- * Pain Wedge Categories: maps raw GitHub complaints into actionable product wedges
- */
 export const PAIN_CATEGORIES = [
   {
     id: 'missing_feature',
     icon: '🧩',
-    label: '高频刚需长期缺失',
-    desc: '大量用户投票跪求但官方迟迟不做的核心功能',
-    keywords: ['support', 'feature', 'add ', 'allow', 'please', 'template', 'export', 'import', 'plugin', 'api', 'table', 'sync', 'webhook', 'mcp'],
+    label: '缺核心功能',
+    desc: '大量用户投票想要、但官方迟迟没做的实用功能',
+    keywords: ['support', 'feature', 'add ', 'allow', 'please', 'template', 'export', 'import', 'plugin', 'api', 'table', 'sync', 'webhook', 'mcp', 'tabs', 'latex', 'highlight'],
   },
   {
     id: 'setup_os',
     icon: '🪟',
-    label: '安装劝退 / 跨平台兼容差',
-    desc: 'Windows 报错、Docker 繁琐、环境配置劝退普通用户',
-    keywords: ['windows', 'install', 'setup', 'docker', 'build', 'compile', 'path', 'wsl', 'macos', 'linux', 'arm64', 'portable', 'exe'],
+    label: '安装配置难',
+    desc: 'Windows 报错、Docker 繁琐、环境搭建劝退普通人',
+    keywords: ['windows', 'install', 'setup', 'docker', 'build', 'compile', 'path', 'wsl', 'macos', 'linux', 'arm64', 'portable', 'exe', 'self host', 'self-host'],
   },
   {
     id: 'bloat_perf',
     icon: '🐢',
-    label: '臃肿卡顿 / 内存CPU暴涨',
-    desc: '启动慢、吃内存、发热严重，极适合用轻量方案降维打击',
+    label: '卡顿占内存',
+    desc: '启动慢、吃内存、大文件卡死，适合做轻量极速替代版',
     keywords: ['slow', 'memory', 'ram', 'cpu', 'lag', 'performance', 'freeze', 'heavy', 'bloat', 'leak', 'high usage', 'hang', 'startup'],
   },
   {
     id: 'cloud_paywall',
     icon: '🔒',
-    label: '强绑云端 / 离线受限 / 收费墙',
-    desc: '强制登录、隐私上传、API 限制或昂贵订阅，适合本地优先平替',
-    keywords: ['offline', 'local', 'self-host', 'privacy', 'login', 'account', 'cloud', 'limit', 'quota', 'pricing', 'free', 'openkey', 'ollama'],
+    label: '绑云端或贵',
+    desc: '强制注册登录、不支持纯本地离线使用或限制太多',
+    keywords: ['offline', 'local', 'privacy', 'login', 'account', 'cloud', 'limit', 'quota', 'pricing', 'free', 'ollama'],
   },
   {
     id: 'bug_crash',
     icon: '🐛',
-    label: '核心报错 / 稳定性硬伤',
-    desc: '高频崩溃、丢数据或关键链路失效',
+    label: '报错与闪退',
+    desc: '经常崩溃、报错或关键功能失灵',
     keywords: ['bug', 'crash', 'error', 'fail', 'broken', 'not working', 'exception', 'corrupt', 'lost', 'blank', '500', 'timeout'],
   },
   {
     id: 'ux_dx',
     icon: '🎨',
-    label: '交互反人类 / 中文体验差',
-    desc: '快捷键别扭、UI 复杂难用、多语言/中文排版乱码',
-    keywords: ['ui', 'ux', 'dark mode', 'shortcut', 'hotkey', 'font', 'chinese', 'cjk', 'i18n', 'language', 'mobile', 'responsive', 'confusing'],
+    label: '操作不好用',
+    desc: '界面复杂、快捷键反直觉、中文排版或移动端体验差',
+    keywords: ['ui', 'ux', 'dark mode', 'shortcut', 'hotkey', 'font', 'chinese', 'cjk', 'i18n', 'language', 'mobile', 'responsive', 'confusing', 'stylus', 'eraser'],
   },
 ];
 
 export const NICHE_PRESETS = {
-  ai_agent: { label: '🤖 AI Agent & 自动化', query: 'agent OR mcp stars:1500..45000' },
-  canvas_notes: { label: '📝 白板 / 笔记 / 知识库', query: 'whiteboard OR markdown OR notes stars:2000..80000' },
-  dev_cli: { label: '🛠️ 开发者工具 & CLI', query: 'cli OR terminal OR devtools stars:1500..40000' },
-  media_video: { label: '🎬 音视频 / 字幕 / 创作', query: 'video OR tts OR subtitle OR audio stars:1500..45000' },
-  desktop_app: { label: '💻 桌面效率工具', query: 'desktop OR launcher OR clipboard stars:1500..45000' },
+  ai_agent: { label: '🤖 AI 工具', query: 'agent OR mcp stars:1500..45000' },
+  canvas_notes: { label: '📝 笔记与白板', query: 'whiteboard OR markdown OR notes stars:2000..150000' },
+  dev_cli: { label: '🛠️ 开发者工具', query: 'cli OR terminal OR devtools stars:1500..45000' },
+  media_video: { label: '🎬 音视频工具', query: 'video OR tts OR subtitle OR audio stars:1500..45000' },
+  desktop_app: { label: '💻 桌面效率软件', query: 'desktop OR launcher OR clipboard stars:1500..45000' },
 };
+
+/**
+ * Generates an instant plain-Chinese summary hint for common English GitHub issue titles
+ * so non-native readers understand every issue card in 1 second!
+ */
+export function buildChineseTakeaway(title = '', category = 'missing_feature') {
+  if (/[\u4e00-\u9fa5]{3,}/.test(title)) return title; // Already Chinese!
+  const low = title.toLowerCase();
+  const topics = [];
+  const dict = [
+    [/\btable(s)?\b/, '插入与编辑「表格」'],
+    [/\bhighlight/, '文字「局部高亮」标记'],
+    [/\bcolor(s)?\b.*\btext\b|\brich\s*text\b/, '同一段文字内「多颜色/富文本」样式'],
+    [/\btab(s)?\b/, '「多标签页」切换管理'],
+    [/\blatex\b|\bmath\b|\bformula/, '「LaTeX 数学公式」渲染'],
+    [/\bself[- ]?host/, '简化「私有化/本地部署」流程'],
+    [/\bgrid\b/, '「网格/方格纸背景」视图'],
+    [/\beraser\b|\bstylus\b|\bpen\b/, '手写笔与「压感橡皮擦」体验优化'],
+    [/\bpdf\b/, '「PDF 导入/导出」能力'],
+    [/\bmarkdown\b/, '原生「Markdown」双向支持'],
+    [/\boffline\b|\blocal\b/, '无需联网的「纯本地离线模式」'],
+    [/\bwindows\b/, '修复「Windows 系统」安装与兼容问题'],
+    [/\bdocker\b/, '摆脱繁琐「Docker」依赖'],
+    [/\bmemory\b|\bram\b|\bleak\b/, '解决「内存占用过高/泄漏」问题'],
+    [/\bslow\b|\blag\b|\bperformance\b|\bfreeze\b/, '解决「卡顿掉帧与启动慢」问题'],
+    [/\bdark\s*mode\b|\btheme\b/, '完善「深色模式/主题切换」'],
+    [/\bplugin(s)?\b|\bextension/, '开放「插件扩展」机制'],
+    [/\bmobile\b|\bipad\b|\bandroid\b|\bios\b/, '优化「手机/平板触屏」适配'],
+    [/\bshortcut(s)?\b|\bhotkey|\bkeybind/, '支持「自定义快捷键」'],
+    [/\bchinese\b|\bcjk\b|\bi18n\b|\bfont/, '改善「中文字体与多语言」支持'],
+    [/\bsync\b|\bcloud\b|\bbackup/, '更简单的「多端同步与自动备份」'],
+    [/\bsearch\b|\bfind\b/, '全局「搜索与快速定位」功能'],
+    [/\bfolder(s)?\b|\bworkspace/, '「文件夹层级整理」管理'],
+    [/\bapi\b|\bwebhook|\bmcp\b/, '提供「开放 API / MCP 接口」调用'],
+    [/\bcrash|\berror\b|\bfail|\bbroken/, '修复高频触发的「报错闪退」缺陷'],
+  ];
+
+  for (const [re, zh] of dict) {
+    if (re.test(low)) topics.push(zh);
+    if (topics.length >= 2) break;
+  }
+
+  if (topics.length > 0) {
+    return `用户高赞诉求：${topics.join(' + ')}`;
+  }
+
+  const fallbackByCat = {
+    missing_feature: '用户高赞呼吁新增此项实用功能（官方长期未做）',
+    setup_os: '用户反馈安装部署繁琐或跨平台环境报错',
+    bloat_perf: '用户吐槽软件运行卡顿、资源占用偏高',
+    cloud_paywall: '用户希望解除云端限制、支持更自由的本地使用',
+    bug_crash: '大量用户遇到此功能异常或报错，亟待修复',
+    ux_dx: '用户反馈此处交互不够顺手，希望优化操作体验',
+  };
+  return fallbackByCat[category] || '高赞未解决用户需求';
+}
 
 function ghApiJson(endpoint, timeoutMs = 15000) {
   return new Promise((resolve, reject) => {
@@ -82,7 +135,7 @@ export function parseRepoSlug(input = '') {
   const urlMatch = cleaned.match(/github\.com\/([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)/i);
   if (urlMatch) return urlMatch[1];
   if (/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(cleaned)) return cleaned;
-  throw new Error('请输入合法的 GitHub 仓库名（如 excalidraw/excalidraw）或完整 GitHub 网址');
+  throw new Error('请输入正确的 GitHub 仓库名（例如 excalidraw/excalidraw）或粘贴完整 GitHub 链接');
 }
 
 export function classifyIssue(title = '', body = '', labels = []) {
@@ -102,14 +155,10 @@ export function classifyIssue(title = '', body = '', labels = []) {
 }
 
 export function computeOpportunityScore({ stars, openIssues, topIssues }) {
-  // 1. Market validation (0..28): sweet spot 1k..80k stars
   const starScore = Math.min(28, Math.round(Math.log10(Math.max(10, stars)) * 6.2));
-  // 2. Backlog pressure (0..22)
   const backlogScore = Math.min(22, Math.round(Math.log10(Math.max(5, openIssues)) * 7.5));
-  // 3. Acute user pain votes on top 10 unresolved issues (0..32)
   const top10Votes = topIssues.slice(0, 10).reduce((acc, it) => acc + it.thumbsUp + it.negVotes * 2, 0);
   const voteScore = Math.min(32, Math.round(Math.log10(Math.max(1, top10Votes + 1)) * 11.5));
-  // 4. Maintainer neglect / staleness on top 10 issues (0..18)
   const avgStale =
     topIssues.length > 0
       ? topIssues.slice(0, 10).reduce((acc, it) => acc + it.staleDays, 0) / Math.min(10, topIssues.length)
@@ -117,9 +166,9 @@ export function computeOpportunityScore({ stars, openIssues, topIssues }) {
   const neglectScore = Math.min(18, Math.round(avgStale / 25));
 
   const total = Math.min(99, Math.max(15, starScore + backlogScore + voteScore + neglectScore));
-  let verdict = '中等切入机会';
-  if (total >= 82) verdict = '🔥 黄金降维打击靶标（需求极大且官方长期积压痛点）';
-  else if (total >= 68) verdict = '⚡ 优质差异化切入点（存在明显未满足刚需）';
+  let verdict = '有一定改进空间';
+  if (total >= 82) verdict = '非常值得做替代品（用户多、痛点攒了好几年没人修）';
+  else if (total >= 68) verdict = '值得切入（有明显没被满足的高赞需求）';
 
   return {
     score: total,
@@ -130,47 +179,42 @@ export function computeOpportunityScore({ stars, openIssues, topIssues }) {
 }
 
 export function buildInstantBlueprint(repo, clusters, topIssues, opp) {
-  const sortedClusters = [...clusters].sort((a, b) => b.totalWeight - a.totalWeight);
+  const sortedClusters = [...clusters].filter((c) => c.count > 0).sort((a, b) => b.totalWeight - a.totalWeight);
   const primary = sortedClusters[0];
   const secondary = sortedClusters[1];
   const top3 = topIssues.slice(0, 3);
+  const years = (opp.avgStaleDays / 365).toFixed(1);
 
-  const wedgeLines = [
-    `1. **核心破局定位**：做一个轻量、开箱即用、原生体验拉满的「${repo.name} 极速增强平替」，直接死磕原版呼声最高却拖延了平均 **${opp.avgStaleDays} 天** 未解决的痛点。`,
+  const bullets = [
+    `原版虽然有 ${(repo.stars / 1000).toFixed(1)}k 星，但前 10 个最高赞需求累计有 ${opp.top10Votes} 人点赞催更，官方平均拖了 ${years} 年（${opp.avgStaleDays} 天）还没解决。`,
     primary
-      ? `2. **头号痛点狙击（${primary.icon} ${primary.label} · ${primary.count} 个高赞未解 Issue）**：优先把 ${primary.issues
-          .slice(0, 2)
-          .map((i) => `#${i.number} (${i.thumbsUp}👍 "${i.title.slice(0, 42)}")`)
-          .join(' 与 ')} 做成开箱默认内置能力。`
+      ? `用户抱怨最集中的是「${primary.label}」（占 ${primary.count} 条高赞反馈），尤其是 #${primary.issues[0]?.number}（${primary.issues[0]?.thumbsUp} 人点赞：${primary.issues[0]?.zhSummary || primary.issues[0]?.title}）。`
       : '',
     secondary
-      ? `3. **第二差异化护城河（${secondary.icon} ${secondary.label}）**：针对 ${secondary.issues
-          .slice(0, 2)
-          .map((i) => `#${i.number} (${i.thumbsUp}👍)`)
-          .join('、')}，提供零配置本地运行 + 原生中文与现代化交互体验。`
-      : '',
+      ? `其次是「${secondary.label}」（${secondary.count} 条反馈）——只要做一个免折腾、开箱自带这些高频功能的轻量版，很容易吸引原版受挫用户。`
+      : '只要把排名前 3 的高赞痛点做成开箱即用的主打功能，就能形成清晰的差异化卖点。',
   ].filter(Boolean);
 
-  const buildPrompt = `我们要基于真实 GitHub 用户痛点，打造一个超越 \`${repo.fullName}\` (${repo.stars.toLocaleString()}★) 的轻量级差异化新项目！
+  const buildPrompt = `我们要参考 \`${repo.fullName}\` 的真实用户痛点，做一个更轻快、更好用的改进版新项目！
 
-### 原版真实高赞未解决痛点铁证：
+### 原版用户抱怨最多但官方长期未解决的 3 个痛点：
 ${top3
   .map(
     (it, idx) =>
-      `${idx + 1}. Issue #${it.number} [${it.thumbsUp}👍 / ${it.comments}条评论 / 拖延${it.staleDays}天]：${it.title}`
+      `${idx + 1}. ${it.zhSummary || ''} —— 原帖 #${it.number} (${it.thumbsUp}人点赞 / 拖延${it.staleDays}天): ${it.title}`
   )
   .join('\n')}
 
-### 我们的降维打击 MVP 目标：
-1. 零复杂配置（拒绝繁琐 Docker/重度依赖），单命令或纯浏览器开箱即用；
-2. 原生内置解决上述 Top 3 用户呼声最高的核心痛点，做成第一屏核心卖点；
-3. 提供极致清爽的现代中文/双语界面、完整自动化测试与一键部署配置。
+### 新项目核心要求：
+1. 免复杂安装配置，打开浏览器或单条命令即可直接使用；
+2. 原生内置解决上面这 3 个最高赞痛点，作为产品的核心亮点；
+3. 界面清爽直观（默认中文友好），包含基础测试与 README 说明。
 
-请先设计清晰的目录结构与核心模块，直接搭建出可本地运行验证的 v1.0 完整项目！`;
+请先给出清晰的功能设计与目录结构，然后直接写出可运行的完整 v1.0 代码！`;
 
   return {
-    headline: `针对 ${repo.fullName} 的「${primary?.label || '核心痛点'}」降维平替方案`,
-    bullets: wedgeLines,
+    headline: `用更轻快的方式，解决 ${repo.name} 拖了 ${years} 年没修好的核心痛点`,
+    bullets,
     buildPrompt,
   };
 }
@@ -179,25 +223,20 @@ export async function discoverTargetRepos(presetOrKeyword = 'ai_agent') {
   const preset = NICHE_PRESETS[presetOrKeyword];
   const rawQuery = preset ? preset.query : `${presetOrKeyword} stars:>500`;
   const q = encodeURIComponent(`${rawQuery} archived:false`);
-  const data = await ghApiJson(`search/repositories?q=${q}&sort=updated&order=desc&per_page=16`);
+  const data = await ghApiJson(`search/repositories?q=${q}&sort=updated&order=desc&per_page=12`);
 
   return (data.items || [])
     .filter((r) => (r.open_issues_count || 0) >= 15)
-    .map((r) => {
-      const issueRatio = Math.min(40, Math.round(Math.log10(Math.max(10, r.open_issues_count)) * 12));
-      const starBase = Math.min(55, Math.round(Math.log10(Math.max(50, r.stargazers_count)) * 11.5));
-      return {
-        fullName: r.full_name,
-        name: r.name,
-        description: r.description || '暂无简介',
-        stars: r.stargazers_count,
-        openIssues: r.open_issues_count,
-        language: r.language || 'Unknown',
-        hintScore: Math.min(98, issueRatio + starBase),
-      };
-    })
+    .map((r) => ({
+      fullName: r.full_name,
+      name: r.name,
+      description: r.description || '暂无简介',
+      stars: r.stargazers_count,
+      openIssues: r.open_issues_count,
+      language: r.language || 'Unknown',
+    }))
     .sort((a, b) => b.openIssues - a.openIssues)
-    .slice(0, 10);
+    .slice(0, 8);
 }
 
 export async function mineRepoPains(repoInput) {
@@ -224,6 +263,7 @@ export async function mineRepoPains(repoInput) {
     const staleDays = Math.max(1, Math.round((now - new Date(it.created_at).getTime()) / 86400000));
     const labels = (it.labels || []).map((l) => (typeof l === 'string' ? l : l.name)).filter(Boolean);
     const category = classifyIssue(it.title, it.body, labels);
+    const zhSummary = buildChineseTakeaway(it.title, category);
     const severity = Math.round(
       thumbsUp * 3.2 + negVotes * 4.5 + heartRocket * 1.5 + (it.comments || 0) * 1.4 + Math.min(30, staleDays / 25)
     );
@@ -231,6 +271,7 @@ export async function mineRepoPains(repoInput) {
     return {
       number: it.number,
       title: it.title,
+      zhSummary,
       url: it.html_url,
       thumbsUp,
       negVotes,
@@ -245,15 +286,14 @@ export async function mineRepoPains(repoInput) {
         .replace(/\r?\n+/g, ' ')
         .replace(/\s+/g, ' ')
         .trim()
-        .slice(0, 260),
+        .slice(0, 220),
       topQuotes: [],
     };
   });
 
   normalizedIssues.sort((a, b) => b.severity - a.severity);
-  const topIssues = normalizedIssues.slice(0, 24);
+  const topIssues = normalizedIssues.slice(0, 20);
 
-  // Fetch real frustrated user comments on the Top 3 highest-severity issues!
   await Promise.all(
     topIssues.slice(0, 3).map(async (iss) => {
       try {
@@ -261,21 +301,20 @@ export async function mineRepoPains(repoInput) {
         if (Array.isArray(comments)) {
           iss.topQuotes = comments
             .filter((c) => c.body && c.body.trim().length > 18 && !/bot/i.test(c.user?.login || ''))
-            .sort((a, b) => ((b.reactions?.['+1'] || 0) - (a.reactions?.['+1'] || 0)))
+            .sort((a, b) => (b.reactions?.['+1'] || 0) - (a.reactions?.['+1'] || 0))
             .slice(0, 2)
             .map((c) => ({
               user: c.user?.login || 'user',
               likes: c.reactions?.['+1'] || 0,
-              text: String(c.body).replace(/\s+/g, ' ').trim().slice(0, 180),
+              text: String(c.body).replace(/!\[.*?\]\(.*?\)/g, '').replace(/\s+/g, ' ').trim().slice(0, 160),
             }));
         }
       } catch {
-        // ignore rate/comment fetch errors on individual issue
+        // ignore individual comment fetch failure
       }
     })
   );
 
-  // Build 6-Category Cluster Summary
   const clusters = PAIN_CATEGORIES.map((cat) => {
     const matched = topIssues.filter((i) => i.category === cat.id);
     const totalVotes = matched.reduce((s, i) => s + i.thumbsUp + i.negVotes, 0);

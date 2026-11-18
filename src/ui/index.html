@@ -3,147 +3,185 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Issue Pain Miner — GitHub 竞品痛点挖掘机 & AI 降维复刻工作台</title>
+    <title>产品痛点寻宝仪 — 从 GitHub 用户差评里找新项目灵感</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <header class="topbar">
-      <div class="brand">
-        <span class="logo-badge">🔍</span>
-        <div>
-          <div class="brand-title">ISSUE PAIN MINER <span class="tag">AI × GitHub 商机探测器</span></div>
-          <div class="brand-sub">专抓热门开源项目「高赞长期未解决 Issues」，聚类用户真实怨念，提炼降维打击新产品方案</div>
-        </div>
-      </div>
-
-      <form id="mine-form" class="search-bar">
-        <input
-          id="repo-input"
-          type="text"
-          value="excalidraw/excalidraw"
-          placeholder="输入 GitHub 仓库名或完整链接，如 excalidraw/excalidraw 、 ollama/ollama ..."
-          autocomplete="off"
-        />
-        <button type="submit" class="primary-btn" id="btn-mine">🔍 深度挖掘痛点</button>
-      </form>
-    </header>
-
-    <!-- Niche Target Radar Strip -->
-    <section class="radar-strip">
-      <span class="radar-label">📡 热门赛道找靶标：</span>
-      <div id="preset-pills" class="preset-pills"></div>
-    </section>
-
-    <div class="workspace">
-      <!-- Left Sidebar: Discovered Niche Targets & Saved History -->
-      <aside class="sidebar">
-        <div class="side-block">
-          <div class="side-title">
-            <span>🗂️ 已归档痛点报告</span>
-            <span id="saved-count" class="count-pill">0</span>
+    <div class="page-shell">
+      <!-- Clean Editorial Header -->
+      <header class="hero-header">
+        <div class="hero-top-row">
+          <div class="brand-lockup">
+            <div class="brand-icon">🧭</div>
+            <div>
+              <h1 class="brand-title">产品痛点寻宝仪 <span class="sub-badge">Issue Pain Miner</span></h1>
+              <p class="brand-desc">输入任何一个热门开源软件，3 秒看清它的用户最头疼、催了几年都没人修的痛点——帮你找到「做一个更好用替代品」的现成灵感。</p>
+            </div>
           </div>
-          <div id="saved-list" class="side-list"></div>
+          <button class="text-btn" id="btn-toggle-finder">🔭 不知道搜什么？点此按分类找靶标</button>
         </div>
 
-        <div class="side-block">
-          <div class="side-title">
-            <span>🎯 赛道高积压靶标推荐</span>
-            <span id="discover-status" class="tiny-muted">点击上方赛道加载</span>
+        <!-- Search Box -->
+        <form id="mine-form" class="search-card">
+          <input
+            id="repo-input"
+            type="text"
+            value="excalidraw/excalidraw"
+            placeholder="输入软件名 (如 excalidraw/excalidraw、ollama/ollama) 或直接粘贴 GitHub 网址..."
+            autocomplete="off"
+          />
+          <button type="submit" class="primary-btn" id="btn-mine">开始分析痛点</button>
+        </form>
+
+        <!-- Saved History Quick Chips -->
+        <div class="history-row" id="history-row">
+          <span class="history-label">📂 已分析过的软件：</span>
+          <div id="saved-chips" class="saved-chips"></div>
+        </div>
+
+        <!-- Collapsible Niche Target Drawer (clean, hidden until wanted or when no report open) -->
+        <section id="finder-drawer" class="finder-drawer hidden">
+          <div class="finder-head">
+            <div>
+              <strong>📡 按分类挑一个高热度软件来分析</strong>
+              <span class="muted-hint" id="discover-status">点击下方分类，自动列出用户多、待解决问题也多的热门项目</span>
+            </div>
+            <div id="preset-pills" class="preset-pills"></div>
           </div>
-          <div id="discover-list" class="side-list"></div>
-        </div>
-      </aside>
+          <div id="discover-grid" class="discover-grid"></div>
+        </section>
+      </header>
 
-      <!-- Main Content -->
-      <main class="main-stage">
-        <div id="empty-state" class="empty-state">
-          <div class="empty-icon">💎</div>
-          <h2>从用户抱怨最多的地方，挖出下一个千星项目</h2>
-          <p>在顶部输入任意 GitHub 热门仓库（或点击左侧赛道推荐靶标），3 秒抓取最高赞未解决 Issues 与真实用户吐槽原话。</p>
-          <div class="quick-examples">
-            <button class="ghost-btn" data-quick="excalidraw/excalidraw">试试 excalidraw/excalidraw</button>
-            <button class="ghost-btn" data-quick="browser-use/browser-use">试试 browser-use/browser-use</button>
-            <button class="ghost-btn" data-quick="ollama/ollama">试试 ollama/ollama</button>
+      <!-- Empty Welcome Card (only shown if zero reports exist yet) -->
+      <section id="empty-state" class="welcome-card hidden">
+        <h2>👋 三步找到一个「有人抢着用」的新项目点子</h2>
+        <div class="how-steps">
+          <div class="how-step">
+            <span class="step-num">1</span>
+            <div>
+              <strong>选一个热门开源软件</strong>
+              <p>有几万星说明市场需求已经被验证过了，不用担心做出来没人要。</p>
+            </div>
+          </div>
+          <div class="how-step">
+            <span class="step-num">2</span>
+            <div>
+              <strong>看点赞最高却没解决的抱怨</strong>
+              <p>几百人点赞催更、官方却拖了三五年不做的需求，就是你最好的切入点。</p>
+            </div>
+          </div>
+          <div class="how-step">
+            <span class="step-num">3</span>
+            <div>
+              <strong>一键生成改进版开发方案</strong>
+              <p>AI 自动帮你整理好新产品卖点与开发提示词，直接复制就能开工。</p>
+            </div>
           </div>
         </div>
+        <div class="quick-try-row">
+          <span>快速体验示例：</span>
+          <button class="chip-btn" data-quick="excalidraw/excalidraw">🎨 Excalidraw 手绘白板</button>
+          <button class="chip-btn" data-quick="ollama/ollama">🦙 Ollama 本地大模型</button>
+          <button class="chip-btn" data-quick="browser-use/browser-use">🌐 Browser-Use 网页智能体</button>
+        </div>
+      </section>
 
-        <div id="report-view" class="report-view hidden">
-          <!-- Opportunity Score Hero Banner -->
-          <section class="hero-card">
-            <div class="hero-left">
-              <div class="repo-header">
-                <a id="r-name" href="#" target="_blank" class="repo-link">owner/repo</a>
-                <span id="r-lang" class="meta-badge">TypeScript</span>
-                <span id="r-license" class="meta-badge">MIT</span>
+      <!-- Main Report Container -->
+      <main id="report-view" class="report-container hidden">
+        <!-- Executive Verdict Summary Card -->
+        <section class="verdict-card">
+          <div class="verdict-main">
+            <div class="repo-title-row">
+              <a id="r-name" href="#" target="_blank" class="repo-name-link">excalidraw/excalidraw ↗</a>
+              <span id="r-lang" class="soft-pill">TypeScript</span>
+              <span id="r-stars" class="soft-pill">⭐ 135,894 星</span>
+              <span id="r-open" class="soft-pill">📬 3,573 条未关闭反馈</span>
+            </div>
+            <p id="r-desc" class="repo-summary-desc"></p>
+            <div class="human-insight" id="r-human-insight"></div>
+          </div>
+
+          <div class="score-box">
+            <div class="score-label">新产品机会评分</div>
+            <div class="score-value"><span id="r-score">99</span><small>/100</small></div>
+            <div class="score-tag" id="r-verdict">非常值得做替代品</div>
+          </div>
+        </section>
+
+        <!-- Clear 3-Step Navigation Tabs -->
+        <nav class="step-tabs">
+          <button class="step-tab active" data-step="pains">
+            <span class="tab-step-badge">第 1 步</span>
+            <span class="tab-step-title">看用户最头疼什么</span>
+            <span class="tab-step-count" id="tab-pain-count">20 条高赞痛点</span>
+          </button>
+          <button class="step-tab" data-step="plan">
+            <span class="tab-step-badge">第 2 步</span>
+            <span class="tab-step-title">看怎么做出更好的替代品</span>
+            <span class="tab-step-count" id="tab-plan-badge">AI 产品方案</span>
+          </button>
+          <button class="step-tab" data-step="build">
+            <span class="tab-step-badge">第 3 步</span>
+            <span class="tab-step-title">复制指令直接去开发</span>
+            <span class="tab-step-count">一键开工</span>
+          </button>
+        </nav>
+
+        <!-- STEP 1 PANEL: Plain-Chinese Pain List -->
+        <section id="step-pains" class="step-panel active">
+          <div class="filter-bar">
+            <span class="filter-label">按痛点类型筛选：</span>
+            <div id="cluster-pills" class="cluster-pills"></div>
+          </div>
+          <div id="issues-list" class="issues-list"></div>
+        </section>
+
+        <!-- STEP 2 PANEL: Formatted Product Strategy Document -->
+        <section id="step-plan" class="step-panel">
+          <!-- 3-Bullet Plain Takeaway -->
+          <div class="takeaway-card">
+            <div class="takeaway-header">
+              <div>
+                <h3 id="bp-headline">⚡ 三句话看懂破局思路</h3>
+                <p class="muted-hint">先看数据自动提炼的结论；如需深度架构与产品命名，点右侧让本地 AI 撰写完整立项书。</p>
               </div>
-              <p id="r-desc" class="repo-desc"></p>
-              <div class="repo-stats">
-                <span>⭐ Stars: <strong id="r-stars">0</strong></span>
-                <span>🔥 Open Issues: <strong id="r-open">0</strong></span>
-                <span>👍 Top10 痛点总赞: <strong id="r-votes">0</strong></span>
-                <span>⏳ 官方平均拖延: <strong id="r-stale" style="color:#fbbf24">0 天</strong></span>
+              <div class="ai-bar">
+                <select id="ai-engine-select" class="clean-select"></select>
+                <button class="primary-btn" id="btn-run-ai">✨ 用 AI 生成完整中文产品方案</button>
+                <button class="danger-btn hidden" id="btn-cancel-ai">⏹ 停止生成</button>
               </div>
             </div>
-
-            <div class="score-dial">
-              <div class="score-num" id="r-score">88</div>
-              <div class="score-label">破局商机指数 / 100</div>
-              <div class="score-verdict" id="r-verdict">黄金靶标</div>
-            </div>
-          </section>
-
-          <div class="split-columns">
-            <!-- Left Column: 6-Dimension Pain Clusters + Evidence Wall -->
-            <section class="panel-card">
-              <div class="panel-head">
-                <h3>📊 六维痛点聚类 & 真实高赞未解决 Issues 铁证</h3>
-                <button class="ghost-btn" id="btn-export-md">📥 导出 Markdown 报告</button>
-              </div>
-
-              <div id="cluster-bars" class="cluster-bars"></div>
-              <div id="issues-wall" class="issues-wall"></div>
-            </section>
-
-            <!-- Right Column: AI Giant-Killer Blueprint + Prompt + Pocket Foreman Dispatch -->
-            <section class="panel-card blueprint-panel">
-              <div class="panel-head">
-                <h3>🗡️ 超越原版：降维打击产品立项书</h3>
-                <div class="ai-controls">
-                  <select id="ai-engine-select" class="engine-select"></select>
-                  <button class="ai-btn" id="btn-run-ai">🧠 AI 深度推演立项书</button>
-                  <button class="danger-btn hidden" id="btn-cancel-ai">⏹ 中止</button>
-                </div>
-              </div>
-
-              <!-- Instant Data-Backed Wedge Summary -->
-              <div class="instant-box">
-                <div class="instant-title" id="bp-headline">⚡ 快筛破局策略</div>
-                <div id="bp-bullets" class="instant-bullets"></div>
-              </div>
-
-              <!-- Live Streaming Deep AI Strategist Output -->
-              <div id="ai-prd-box" class="ai-prd-box hidden">
-                <div class="ai-prd-header">
-                  <span id="ai-status-text">🧠 本地 AI 产品总监正在深度研读用户吐槽...</span>
-                  <span id="ai-timer" class="mono-timer">0s</span>
-                </div>
-                <div id="ai-prd-content" class="markdown-body"></div>
-              </div>
-
-              <!-- Ready-to-Build Prompt & 1-Click Foreman Dispatch -->
-              <div class="launch-box">
-                <div class="launch-head">
-                  <span>🚀 一键复刻超越开工 Prompt（可直接喂给 Claude / Codex / Foreman）</span>
-                </div>
-                <textarea id="build-prompt-box" class="prompt-textarea"></textarea>
-                <div class="launch-actions">
-                  <button class="primary-btn" id="btn-copy-prompt">📋 复制开工 Prompt</button>
-                  <button class="foreman-btn" id="btn-send-foreman">⚡ 一键派单给 Pocket Foreman 建库</button>
-                </div>
-              </div>
-            </section>
+            <ul id="bp-bullets" class="takeaway-list"></ul>
           </div>
-        </div>
+
+          <!-- Beautifully Formatted Rich HTML PRD Document -->
+          <article id="ai-doc-card" class="doc-card hidden">
+            <div class="doc-topbar">
+              <span id="ai-status-text" class="doc-status">✨ AI 产品方案</span>
+              <div class="doc-actions">
+                <span id="ai-timer" class="timer-pill"></span>
+                <button class="ghost-btn" id="btn-goto-build">下一步：去复制开发指令 →</button>
+              </div>
+            </div>
+            <div id="ai-prd-rendered" class="prose-doc"></div>
+          </article>
+        </section>
+
+        <!-- STEP 3 PANEL: Ready-to-Use Coding Prompt & Export -->
+        <section id="step-build" class="step-panel">
+          <div class="build-card">
+            <h3>🚀 把痛点直接变成你的新项目</h3>
+            <p class="build-guide">
+              下面这段话已经把原版软件的<strong>真实高赞痛点</strong>和<strong>新产品改进目标</strong>整理好了。你可以直接自由修改，然后点<strong>「复制开发指令」</strong>发给 Claude / Codex / Antigravity，或者一键派单给本地工头自动建库：
+            </p>
+            <textarea id="build-prompt-box" class="clean-textarea"></textarea>
+            <div class="build-btn-row">
+              <button class="primary-btn" id="btn-copy-prompt">📋 一键复制开发指令</button>
+              <button class="secondary-btn" id="btn-send-foreman">⚡ 发送给 Pocket Foreman 自动建库</button>
+              <button class="ghost-btn" id="btn-export-md">📥 下载完整分析报告 (.md)</button>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
 

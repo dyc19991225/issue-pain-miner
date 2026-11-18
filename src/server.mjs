@@ -2,7 +2,14 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { discoverTargetRepos, mineRepoPains, NICHE_PRESETS } from './githubMiner.mjs';
+import {
+  buildChineseTakeaway,
+  buildInstantBlueprint,
+  discoverTargetRepos,
+  mineRepoPains,
+  NICHE_PRESETS,
+  PAIN_CATEGORIES,
+} from './githubMiner.mjs';
 import { cancelAiJob, detectAiEngines, runAiStrategist } from './aiStrategist.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -47,6 +54,25 @@ export function createPainMinerServer(opts = {}) {
   };
 
   const reportPathFor = (slug) => path.join(stateDir, `${slug.replace('/', '__')}.json`);
+
+  const normalizeLoadedReport = (rep) => {
+    if (!rep || !Array.isArray(rep.topIssues)) return rep;
+    for (const it of rep.topIssues) {
+      if (!it.zhSummary) it.zhSummary = buildChineseTakeaway(it.title, it.category);
+    }
+    rep.clusters = PAIN_CATEGORIES.map((cat) => {
+      const matched = rep.topIssues.filter((i) => i.category === cat.id);
+      return {
+        ...cat,
+        count: matched.length,
+        totalVotes: matched.reduce((s, i) => s + (i.thumbsUp || 0) + (i.negVotes || 0), 0),
+        totalWeight: matched.reduce((s, i) => s + (i.severity || 0), 0),
+        issues: matched,
+      };
+    });
+    rep.instantBlueprint = buildInstantBlueprint(rep.repo, rep.clusters, rep.topIssues, rep.opportunity);
+    return rep;
+  };
 
   const listSavedReports = () => {
     return fs
@@ -117,7 +143,8 @@ export function createPainMinerServer(opts = {}) {
           sendJson(res, 404, { ok: false, error: '未找到历史缓存报告' });
           return;
         }
-        sendJson(res, 200, { ok: true, report: JSON.parse(fs.readFileSync(fp, 'utf8')) });
+        const rep = normalizeLoadedReport(JSON.parse(fs.readFileSync(fp, 'utf8')));
+        sendJson(res, 200, { ok: true, report: rep });
         return;
       }
 
