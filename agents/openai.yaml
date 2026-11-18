@@ -1,0 +1,4 @@
+interface:
+  display_name: "Issue Pain Miner"
+  short_description: "Mine unresolved high-upvote GitHub Issues to design a better competitor MVP"
+  default_prompt: "Use $issue-pain-miner to scan the top unresolved pain points of a GitHub repo and propose a Giant-Killer MVP."

@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Issue Pain Miner — GitHub 竞品痛点挖掘机 & AI 降维复刻工作台</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo-badge">🔍</span>
+        <div>
+          <div class="brand-title">ISSUE PAIN MINER <span class="tag">AI × GitHub 商机探测器</span></div>
+          <div class="brand-sub">专抓热门开源项目「高赞长期未解决 Issues」，聚类用户真实怨念，提炼降维打击新产品方案</div>
+        </div>
+      </div>
+
+      <form id="mine-form" class="search-bar">
+        <input
+          id="repo-input"
+          type="text"
+          value="excalidraw/excalidraw"
+          placeholder="输入 GitHub 仓库名或完整链接，如 excalidraw/excalidraw 、 ollama/ollama ..."
+          autocomplete="off"
+        />
+        <button type="submit" class="primary-btn" id="btn-mine">🔍 深度挖掘痛点</button>
+      </form>
+    </header>
+
+    <!-- Niche Target Radar Strip -->
+    <section class="radar-strip">
+      <span class="radar-label">📡 热门赛道找靶标：</span>
+      <div id="preset-pills" class="preset-pills"></div>
+    </section>
+
+    <div class="workspace">
+      <!-- Left Sidebar: Discovered Niche Targets & Saved History -->
+      <aside class="sidebar">
+        <div class="side-block">
+          <div class="side-title">
+            <span>🗂️ 已归档痛点报告</span>
+            <span id="saved-count" class="count-pill">0</span>
+          </div>
+          <div id="saved-list" class="side-list"></div>
+        </div>
+
+        <div class="side-block">
+          <div class="side-title">
+            <span>🎯 赛道高积压靶标推荐</span>
+            <span id="discover-status" class="tiny-muted">点击上方赛道加载</span>
+          </div>
+          <div id="discover-list" class="side-list"></div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-stage">
+        <div id="empty-state" class="empty-state">
+          <div class="empty-icon">💎</div>
+          <h2>从用户抱怨最多的地方，挖出下一个千星项目</h2>
+          <p>在顶部输入任意 GitHub 热门仓库（或点击左侧赛道推荐靶标），3 秒抓取最高赞未解决 Issues 与真实用户吐槽原话。</p>
+          <div class="quick-examples">
+            <button class="ghost-btn" data-quick="excalidraw/excalidraw">试试 excalidraw/excalidraw</button>
+            <button class="ghost-btn" data-quick="browser-use/browser-use">试试 browser-use/browser-use</button>
+            <button class="ghost-btn" data-quick="ollama/ollama">试试 ollama/ollama</button>
+          </div>
+        </div>
+
+        <div id="report-view" class="report-view hidden">
+          <!-- Opportunity Score Hero Banner -->
+          <section class="hero-card">
+            <div class="hero-left">
+              <div class="repo-header">
+                <a id="r-name" href="#" target="_blank" class="repo-link">owner/repo</a>
+                <span id="r-lang" class="meta-badge">TypeScript</span>
+                <span id="r-license" class="meta-badge">MIT</span>
+              </div>
+              <p id="r-desc" class="repo-desc"></p>
+              <div class="repo-stats">
+                <span>⭐ Stars: <strong id="r-stars">0</strong></span>
+                <span>🔥 Open Issues: <strong id="r-open">0</strong></span>
+                <span>👍 Top10 痛点总赞: <strong id="r-votes">0</strong></span>
+                <span>⏳ 官方平均拖延: <strong id="r-stale" style="color:#fbbf24">0 天</strong></span>
+              </div>
+            </div>
+
+            <div class="score-dial">
+              <div class="score-num" id="r-score">88</div>
+              <div class="score-label">破局商机指数 / 100</div>
+              <div class="score-verdict" id="r-verdict">黄金靶标</div>
+            </div>
+          </section>
+
+          <div class="split-columns">
+            <!-- Left Column: 6-Dimension Pain Clusters + Evidence Wall -->
+            <section class="panel-card">
+              <div class="panel-head">
+                <h3>📊 六维痛点聚类 & 真实高赞未解决 Issues 铁证</h3>
+                <button class="ghost-btn" id="btn-export-md">📥 导出 Markdown 报告</button>
+              </div>
+
+              <div id="cluster-bars" class="cluster-bars"></div>
+              <div id="issues-wall" class="issues-wall"></div>
+            </section>
+
+            <!-- Right Column: AI Giant-Killer Blueprint + Prompt + Pocket Foreman Dispatch -->
+            <section class="panel-card blueprint-panel">
+              <div class="panel-head">
+                <h3>🗡️ 超越原版：降维打击产品立项书</h3>
+                <div class="ai-controls">
+                  <select id="ai-engine-select" class="engine-select"></select>
+                  <button class="ai-btn" id="btn-run-ai">🧠 AI 深度推演立项书</button>
+                  <button class="danger-btn hidden" id="btn-cancel-ai">⏹ 中止</button>
+                </div>
+              </div>
+
+              <!-- Instant Data-Backed Wedge Summary -->
+              <div class="instant-box">
+                <div class="instant-title" id="bp-headline">⚡ 快筛破局策略</div>
+                <div id="bp-bullets" class="instant-bullets"></div>
+              </div>
+
+              <!-- Live Streaming Deep AI Strategist Output -->
+              <div id="ai-prd-box" class="ai-prd-box hidden">
+                <div class="ai-prd-header">
+                  <span id="ai-status-text">🧠 本地 AI 产品总监正在深度研读用户吐槽...</span>
+                  <span id="ai-timer" class="mono-timer">0s</span>
+                </div>
+                <div id="ai-prd-content" class="markdown-body"></div>
+              </div>
+
+              <!-- Ready-to-Build Prompt & 1-Click Foreman Dispatch -->
+              <div class="launch-box">
+                <div class="launch-head">
+                  <span>🚀 一键复刻超越开工 Prompt（可直接喂给 Claude / Codex / Foreman）</span>
+                </div>
+                <textarea id="build-prompt-box" class="prompt-textarea"></textarea>
+                <div class="launch-actions">
+                  <button class="primary-btn" id="btn-copy-prompt">📋 复制开工 Prompt</button>
+                  <button class="foreman-btn" id="btn-send-foreman">⚡ 一键派单给 Pocket Foreman 建库</button>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

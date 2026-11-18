@@ -1,0 +1,25 @@
+{
+  "name": "issue-pain-miner",
+  "version": "1.0.0",
+  "description": "Mine top-upvoted unresolved GitHub Issues of any competitor repo, cluster real user pain points, and generate a Giant-Killer product blueprint & AI coding prompt.",
+  "type": "module",
+  "bin": {
+    "issue-pain-miner": "./bin/pain-miner.mjs"
+  },
+  "scripts": {
+    "start": "node bin/pain-miner.mjs up",
+    "test": "node --test test/pain-miner.test.mjs"
+  },
+  "keywords": [
+    "github",
+    "issues",
+    "product-discovery",
+    "competitor-analysis",
+    "indie-hacker",
+    "claude-code",
+    "codex",
+    "ai-agent"
+  ],
+  "author": "dyc19991225",
+  "license": "MIT"
+}
